@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import  prisma  from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import Mux from "@mux/mux-node";
 
 const { MUX_TOKEN_ID, MUX_TOKEN_SECRET } = process.env;
@@ -11,12 +11,12 @@ if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) {
 const mux = new Mux({ tokenId: MUX_TOKEN_ID, tokenSecret: MUX_TOKEN_SECRET });
 
 export async function GET(
-  req: Request,
-  context: { params: Promise<{ uploadId: string }> }
+  req: NextRequest,
+  { params }: { params: { uploadId: string } } // ✅ synchronous
 ) {
-  try {
-    const { uploadId } = await context.params;
+  const { uploadId } = params;
 
+  try {
     // 1️⃣ Get the upload from Mux
     const upload = await mux.video.uploads.retrieve(uploadId);
 

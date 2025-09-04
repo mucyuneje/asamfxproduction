@@ -3,11 +3,15 @@ import prisma from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } } // ✅ synchronous params
 ) {
-  try {
-    const { id: kitId } = await context.params;
+  const kitId = params.id;
 
+  if (!kitId) {
+    return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
+  }
+
+  try {
     const body = await req.json();
     const { videoIds } = body;
 

@@ -1,10 +1,14 @@
 // app/api/admin/kits/[id]/route.ts
-import { NextResponse } from "next/server";
-import  prisma  from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+// PATCH: update a kit
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } } // ✅ synchronous params
+) {
   const kitId = params.id;
   if (!kitId) return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
 
@@ -16,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   let body: { name?: string; price?: number };
   try {
     body = await req.json();
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -46,12 +50,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-// DELETE: delete entire kit
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  // ✅ Pass authOptions here
+// DELETE: delete a kit
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
-
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session?.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -59,25 +64,22 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const deleted = await prisma.kit.delete({ where: { id: params.id } });
     return NextResponse.json({ message: "Kit deleted", kit: deleted });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE kit error:", err);
     return NextResponse.json({ error: "Failed to delete kit" }, { status: 500 });
   }
 }
+
+// GET: fetch all kits
 export async function GET() {
   try {
     const kits = await prisma.kit.findMany({
       include: {
-        kitVideos: {
-          include: { video: true }, // include the full video object
-        },
-        kitPurchases: true, // if you need purchases info
+        kitVideos: { include: { video: true } },
+        kitPurchases: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
-    // Map kitVideos to a flat videos array for frontend convenience
     const mappedKits = kits.map(k => ({
       ...k,
       videos: k.kitVideos?.map(kv => kv.video) || [],
