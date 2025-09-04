@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import  prisma  from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // ✅ use Promise
+) {
   try {
-    const { id } = params;
+    const { id } = await context.params; // ✅ await the params
     const body = await req.json();
     const { status } = body;
 
@@ -14,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const payment = await prisma.payment.update({
       where: { id },
       data: { status },
-      include: { user: true, video: true }, // so frontend still gets user & video info
+      include: { user: true, video: true },
     });
 
     return NextResponse.json(payment);
