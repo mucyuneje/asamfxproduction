@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    // Correctly await params
     const { id: kitId } = await context.params;
 
     const body = await req.json();
-    const { videoIds } = body; // array of video IDs
+    const { videoIds } = body;
 
     if (!videoIds || !videoIds.length) {
       return NextResponse.json({ error: "Missing videoIds" }, { status: 400 });

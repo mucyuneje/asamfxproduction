@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id: kitId } = await context.params; // Await params
+    const { id: kitId } = await context.params;
     const { videoId } = await req.json();
 
     if (!videoId) {
@@ -14,7 +17,7 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
       where: { id: kitId },
       data: {
         kitVideos: {
-          deleteMany: { videoId }, // Correct relation name
+          deleteMany: { videoId },
         },
       },
       include: {
