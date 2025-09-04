@@ -3,22 +3,24 @@ import prisma from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } } // ✅ synchronous params
+  context: { params: Promise<{ id: string }> } // ✅ Next.js 15 expects Promise
 ) {
-  const kitId = params.id;
-
-  if (!kitId) {
-    return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
-  }
-
   try {
-    const body = await req.json();
-    const { videoIds } = body;
+    // Await the dynamic route param
+    const { id: kitId } = await context.params;
 
-    if (!videoIds || !videoIds.length) {
+    if (!kitId) {
+      return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
+    }
+
+    // Parse request body
+    const { videoIds } = await req.json();
+
+    if (!videoIds || videoIds.length === 0) {
       return NextResponse.json({ error: "Missing videoIds" }, { status: 400 });
     }
 
+    // Update kit with new videos
     const updatedKit = await prisma.kit.update({
       where: { id: kitId },
       data: {
