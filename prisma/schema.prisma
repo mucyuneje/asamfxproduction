@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Users
+model User {
+  id           String        @id @default(cuid())
+  name         String?
+  email        String        @unique
+  password     String
+  role         UserRole      @default(STUDENT)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  payments     Payment[]
+  kitPurchases KitPurchase[]
+}
+
+// Videos
+model Video {
+  id            String     @id @default(uuid())
+  title         String
+  subtitle      String?
+  description   String?
+  category      String?
+  difficulty    String?
+  paymentMethod String?
+  price         Float?
+  uploadId      String?
+  playbackId    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  payments      Payment[]
+  kitVideos     KitVideo[]
+}
+
+// Payments
+model Payment {
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  video     Video          @relation(fields: [videoId], references: [id])
+  videoId   String
+  proofUrl  String?
+  amount    Float?          // optional to allow NULL
+  status    PaymentStatus  @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+// Payment Settings
+model PaymentSettings {
+  id                      String   @id @default(cuid())
+  mobileMoneyAccount      String?
+  mobileMoneyOwner        String?
+  mobileMoneyInstructions String?
+  cryptoAccount           String?
+  cryptoOwner             String?
+  cryptoInstructions      String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+// Kits
+model Kit {
+  id           String       @id @default(cuid())
+  name         String
+  price        Float
+  thumbnail    String
+  createdBy    String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now()) @updatedAt
+  kitPurchases KitPurchase[]
+  kitVideos    KitVideo[]
+}
+
+// Kit Purchases
+model KitPurchase {
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  kit       Kit              @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId     String
+  proofUrl  String
+  amount    Float
+  status    KitPurchaseStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+// Kit Videos (many-to-many)
+model KitVideo {
+  id      String @id @default(cuid())
+  kit     Kit    @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitIdfro   String
+  video   Video  @relation(fields: [videoId], references: [id])
+  videoId String
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  STUDENT
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum KitPurchaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
