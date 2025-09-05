@@ -12,9 +12,13 @@ const mux = new Mux({ tokenId: MUX_TOKEN_ID, tokenSecret: MUX_TOKEN_SECRET });
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { uploadId: string } } // ✅ synchronous
+  context: { params: Promise<{ uploadId: string }> } // ✅ must await
 ) {
-  const { uploadId } = params;
+  const { uploadId } = await context.params; // ✅ await the params
+
+  if (!uploadId) {
+    return NextResponse.json({ error: "Upload ID is required" }, { status: 400 });
+  }
 
   try {
     // 1️⃣ Get the upload from Mux

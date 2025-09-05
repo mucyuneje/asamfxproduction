@@ -4,9 +4,9 @@ import prisma from "@/lib/prisma";
 // PATCH: Update video by ID
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } } // ✅ synchronous params
+  context: { params: Promise<{ id: string }> } // ✅ await params
 ) {
-  const { id } = params;
+  const { id } = await context.params;
 
   if (!id) {
     return NextResponse.json({ error: "Video ID is required" }, { status: 400 });
