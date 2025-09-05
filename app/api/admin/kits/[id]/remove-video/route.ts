@@ -10,14 +10,23 @@ export async function POST(
     const { id: kitId } = await context.params;
 
     if (!kitId) {
-      return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Kit ID is required" },
+        { status: 400 }
+      );
     }
 
-    const { videoId } = await req.json();
+    // Parse JSON body
+    const body = await req.json();
+    const videoId = body?.videoId;
     if (!videoId) {
-      return NextResponse.json({ error: "Missing videoId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing videoId" },
+        { status: 400 }
+      );
     }
 
+    // Remove video from kit
     const updatedKit = await prisma.kit.update({
       where: { id: kitId },
       data: {
@@ -33,6 +42,9 @@ export async function POST(
     return NextResponse.json(updatedKit);
   } catch (err) {
     console.error("Failed to remove video from kit:", err);
-    return NextResponse.json({ error: "Failed to remove video" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to remove video" },
+      { status: 500 }
+    );
   }
 }
