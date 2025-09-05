@@ -9,8 +9,7 @@ import path from "path";
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (session.user.role !== "STUDENT")
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -19,18 +18,13 @@ export async function POST(req: NextRequest) {
     const proof = formData.get("proof") as File;
 
     if (!videoId || !proof)
-      return NextResponse.json(
-        { error: "videoId and proof are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "videoId and proof are required" }, { status: 400 });
 
     const buffer = Buffer.from(await proof.arrayBuffer());
     const fileName = `${Date.now()}-${proof.name}`;
     const uploadDir = path.join(process.cwd(), "public", "uploads");
-    const filePath = path.join(uploadDir, fileName);
-
     await fs.mkdir(uploadDir, { recursive: true });
-    await fs.writeFile(filePath, buffer);
+    await fs.writeFile(path.join(uploadDir, fileName), buffer);
 
     const payment = await prisma.payment.create({
       data: {
@@ -48,19 +42,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(payment);
   } catch (err) {
     console.error("POST payment error:", err);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
 // 🔹 GET: fetch all payments (ADMIN only)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (session.user.role !== "ADMIN")
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -75,10 +65,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(payments);
   } catch (err) {
     console.error("GET payments error:", err);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
@@ -86,8 +73,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (session.user.role !== "ADMIN")
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -97,10 +83,7 @@ export async function PATCH(req: NextRequest) {
     };
 
     if (!paymentId || !status)
-      return NextResponse.json(
-        { error: "paymentId and status are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "paymentId and status are required" }, { status: 400 });
 
     const updatedPayment = await prisma.payment.update({
       where: { id: paymentId },
@@ -111,9 +94,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(updatedPayment);
   } catch (err) {
     console.error("PATCH payment error:", err);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

@@ -1,15 +1,16 @@
+// app/api/admin/kits/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import fs from "fs";
 import path from "path";
 
 // POST: Create a new Kit
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ ...authOptions });
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session?.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     const thumbnail = formData.get("thumbnail") as File;
     const videoIds = JSON.parse(formData.get("videoIds") as string) as string[];
 
-    if (!name || !price || !thumbnail || videoIds.length === 0) {
+    if (!name || !price || !thumbnail || !videoIds?.length) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -58,24 +59,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
 // GET: Fetch all kits
 export async function GET() {
   try {
     const kits = await prisma.kit.findMany({
       include: {
-        kitVideos: {       // ✅ correct relation name
-          include: { video: true },
-        },
-        kitPurchases: true, // ✅ correct relation name
+        kitVideos: { include: { video: true } },
+        kitPurchases: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(kits);
   } catch (err) {
-    console.error("GET kits error:", err);
+    console.error("GET /kits error:", err);
     return NextResponse.json({ error: "Failed to fetch kits" }, { status: 500 });
   }
 }

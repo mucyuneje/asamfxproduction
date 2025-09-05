@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import  prisma  from "@/lib/prisma";
+import { NextResponse, NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
 import Mux from "@mux/mux-node";
 
 const { MUX_TOKEN_ID, MUX_TOKEN_SECRET } = process.env;
@@ -14,7 +14,7 @@ const mux = new Mux({
 });
 
 // POST: Create a new video
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const {
       title,
@@ -35,7 +35,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create video in database
     const video = await prisma.video.create({
       data: {
         title,
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
         category,
         difficulty,
         paymentMethod,
-        price: price ? Number(price) : null,
+        price: price !== undefined ? Number(price) : null,
         uploadId,
       },
     });

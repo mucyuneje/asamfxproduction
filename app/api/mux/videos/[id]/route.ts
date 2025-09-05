@@ -4,16 +4,32 @@ import prisma from "@/lib/prisma";
 // PATCH: Update video by ID
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // ✅ await params
+  context: { params: Promise<{ id: string }> } // ✅ dynamic params must be awaited
 ) {
-  const { id } = await context.params;
-
-  if (!id) {
-    return NextResponse.json({ error: "Video ID is required" }, { status: 400 });
-  }
-
   try {
-    const { title, subtitle, description, category, difficulty, paymentMethod, price } = await req.json();
+    const { id } = await context.params;
+
+    if (!id) {
+      return NextResponse.json({ error: "Video ID is required" }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const {
+      title,
+      subtitle,
+      description,
+      category,
+      difficulty,
+      paymentMethod,
+      price,
+    } = body;
+
+    if (!title || !description || !category || !paymentMethod) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
     const updated = await prisma.video.update({
       where: { id },
@@ -31,6 +47,9 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (err) {
     console.error("Failed to update video:", err);
-    return NextResponse.json({ error: "Failed to update video" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update video" },
+      { status: 500 }
+    );
   }
 }

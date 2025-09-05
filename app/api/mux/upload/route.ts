@@ -12,8 +12,6 @@ const mux = new Mux({
   tokenSecret: MUX_TOKEN_SECRET,
 });
 
-type Params = { params: { uploadId: string } };
-
 // POST: create a new Mux direct upload
 export async function POST() {
   try {
@@ -27,10 +25,13 @@ export async function POST() {
     return NextResponse.json({
       uploadUrl: upload.url,
       uploadId: upload.id,
+      status: "waiting",
     });
   } catch (err: any) {
-    console.error("Mux upload creation error:", err);
-    return NextResponse.json({ error: "Failed to create upload URL" }, { status: 500 });
+    console.error("POST /mux/upload error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to create upload URL" },
+      { status: 500 }
+    );
   }
 }
-

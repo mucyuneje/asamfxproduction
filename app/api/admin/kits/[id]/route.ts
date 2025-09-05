@@ -1,32 +1,28 @@
 // app/api/admin/kits/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+// PATCH: update kit
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // ✅ Must be a Promise
+  context: { params: Promise<{ id: string }> } // ✅ Next.js 15 expects params as Promise
 ) {
   try {
-    // Await the dynamic route param
     const { id: kitId } = await context.params;
-
     if (!kitId) {
       return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
     }
 
     const body = await req.json();
-    if (!body) {
-      return NextResponse.json({ error: "Request body is required" }, { status: 400 });
+    if (!body?.name) {
+      return NextResponse.json({ error: "Kit name is required" }, { status: 400 });
     }
 
-    // Example: update kit name
     const updatedKit = await prisma.kit.update({
       where: { id: kitId },
-      data: {
-        name: body.name,
-      },
+      data: { name: body.name },
     });
 
     return NextResponse.json({ message: "Kit updated", kit: updatedKit });
@@ -34,27 +30,26 @@ export async function PATCH(
     console.error("Failed to update kit:", err);
     return NextResponse.json({ error: "Failed to update kit" }, { status: 500 });
   }
-} 
-// DELETE: delete a kit
-// DELETE: delete a kit
+}
+
+// DELETE: delete kit
 export async function DELETE(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // ✅ Must be a Promise
+  context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ ...authOptions });
   if (!session?.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   try {
     const { id: kitId } = await context.params;
-
     if (!kitId) {
       return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
     }
 
-    const deleted = await prisma.kit.delete({ where: { id: kitId } });
-    return NextResponse.json({ message: "Kit deleted", kit: deleted });
+    const deletedKit = await prisma.kit.delete({ where: { id: kitId } });
+    return NextResponse.json({ message: "Kit deleted", kit: deletedKit });
   } catch (err) {
     console.error("DELETE kit error:", err);
     return NextResponse.json({ error: "Failed to delete kit" }, { status: 500 });
