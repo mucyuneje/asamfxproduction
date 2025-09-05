@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // 🚀 allows build even if ESLint errors exist
   },
-  swcMinify: true, // ✅ optional, faster minification
+  swcMinify: true, // ✅ optional, aster minification
 };
 
 export default nextConfig;
