@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true, // ✅ optional, but recommended for catching React issues
   eslint: {
-    ignoreDuringBuilds: true, // 🚀 allow build even with ESLint errors
+    ignoreDuringBuilds: true, // 🚀 allows build even if ESLint errors exist
   },
+  swcMinify: true, // ✅ optional, faster minification
 };
 
 export default nextConfig;
