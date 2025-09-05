@@ -36,9 +36,10 @@ export async function PATCH(
   }
 } 
 // DELETE: delete a kit
+// DELETE: delete a kit
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // ✅ Must be a Promise
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user || session.user.role !== "ADMIN") {
@@ -46,7 +47,13 @@ export async function DELETE(
   }
 
   try {
-    const deleted = await prisma.kit.delete({ where: { id: params.id } });
+    const { id: kitId } = await context.params;
+
+    if (!kitId) {
+      return NextResponse.json({ error: "Kit ID is required" }, { status: 400 });
+    }
+
+    const deleted = await prisma.kit.delete({ where: { id: kitId } });
     return NextResponse.json({ message: "Kit deleted", kit: deleted });
   } catch (err) {
     console.error("DELETE kit error:", err);
